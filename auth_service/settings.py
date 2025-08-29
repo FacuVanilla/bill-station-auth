@@ -25,12 +25,17 @@ environ.Env.read_env()
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-b*6(xc&spsg_qka(qu-((15labxmkb=d30a=+9om0@$_qi2m#7')
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-b*6(xc&spsg_qka(qu-((15labxmkb=d30a=9om0@$_qi2m#7')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = env.bool('DEBUG', default=False)
 
+# Get allowed hosts from environment or use default
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+
+# Add Railway domain to allowed hosts if PORT is set
+if os.environ.get('PORT'):
+    ALLOWED_HOSTS.append('*')
 
 # Application definition
 
@@ -153,6 +158,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+# Allow all origins in production for Railway
+if not DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
