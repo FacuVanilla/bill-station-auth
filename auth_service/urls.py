@@ -16,17 +16,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import permissions
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from rest_framework import permissions
+
+# Health check view for Railway
+@csrf_exempt
+def health_check(request):
+    return JsonResponse({
+        'status': 'healthy',
+        'message': 'Django Auth Service is running',
+        'timestamp': '2025-01-29T00:00:00Z'
+    })
 
 # Swagger schema view
 schema_view = get_schema_view(
     openapi.Info(
-        title="Auth Service API",
+        title="Django Auth Service API",
         default_version='v1',
-        description="A Django-based authentication service with JWT, PostgreSQL, and Redis",
-        terms_of_service="https://www.google.com/policies/terms/",
+        description="A comprehensive authentication service built with Django",
+        terms_of_service="https://www.billstation.com/terms/",
         contact=openapi.Contact(email="contact@billstation.com"),
         license=openapi.License(name="BSD License"),
     ),
@@ -37,12 +48,8 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/users/', include('users.urls')),
-    
-    # Swagger documentation
-    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('health/', health_check, name='health_check'),
+    path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    
-    # API root
-    path('', schema_view.with_ui('swagger', cache_timeout=0), name='api-root'),
 ]
