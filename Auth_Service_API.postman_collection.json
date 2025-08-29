@@ -1,0 +1,288 @@
+{
+	"info": {
+		"_postman_id": "auth-service-api",
+		"name": "Auth Service API",
+		"description": "Complete API collection for Django Authentication Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User Registration",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@example.com\",\n    \"full_name\": \"Test User\",\n    \"password\": \"testpass123\",\n    \"password_confirm\": \"testpass123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/register/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"register",
+						""
+					]
+				},
+				"description": "Register a new user account"
+			},
+			"response": []
+		},
+		{
+			"name": "User Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"testpass123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/login/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"login",
+						""
+					]
+				},
+				"description": "Login with user credentials and get JWT tokens"
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Profile",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/profile/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"profile",
+						""
+					]
+				},
+				"description": "Get authenticated user's profile (requires JWT token)"
+			},
+			"response": []
+		},
+		{
+			"name": "Update User Profile",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"full_name\": \"Updated User Name\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/profile/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"profile",
+						""
+					]
+				},
+				"description": "Update authenticated user's profile (requires JWT token)"
+			},
+			"response": []
+		},
+		{
+			"name": "Request Password Reset",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@example.com\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/password/reset/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"password",
+						"reset",
+						""
+					]
+				},
+				"description": "Request a password reset token (sent to email in production)"
+			},
+			"response": []
+		},
+		{
+			"name": "Confirm Password Reset",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"token\": \"{{reset_token}}\",\n    \"new_password\": \"newpassword123\",\n    \"new_password_confirm\": \"newpassword123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/password/reset/confirm/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"password",
+						"reset",
+						"confirm",
+						""
+					]
+				},
+				"description": "Reset password using the token from email"
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh JWT Token",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/token/refresh/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"token",
+						"refresh",
+						""
+					]
+				},
+				"description": "Get new access token using refresh token"
+			},
+			"response": []
+		},
+		{
+			"name": "User Logout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"refresh\": \"{{refresh_token}}\",\n    \"access\": \"{{access_token}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/logout/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"logout",
+						""
+					]
+				},
+				"description": "Logout user and blacklist refresh token. You can send both access and refresh tokens, or just the refresh token. The access token in the Authorization header is required for authentication."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "your_access_token_here",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "your_refresh_token_here",
+			"type": "string"
+		},
+		{
+			"key": "reset_token",
+			"value": "your_reset_token_here",
+			"type": "string"
+		}
+	]
+}
