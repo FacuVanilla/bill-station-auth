@@ -15,9 +15,29 @@ fi
 
 echo "📍 Using port: $PORT"
 
+# Check environment variables
+echo "🔍 Checking environment variables..."
+echo "DATABASE_URL: ${DATABASE_URL:0:50}..."  # Show first 50 chars
+echo "REDIS_URL: ${REDIS_URL:0:50}..."  # Show first 50 chars
+
 # Wait for database to be ready (Railway specific)
 echo "⏳ Waiting for database to be ready..."
-sleep 10
+sleep 15
+
+# Test database connection
+echo "🗄️  Testing database connection..."
+python manage.py check --database default || {
+    echo "❌ Database connection failed"
+    echo "🔍 Checking if DATABASE_URL is set..."
+    if [ -z "$DATABASE_URL" ]; then
+        echo "❌ DATABASE_URL is not set"
+        echo "💡 Please add PostgreSQL service to your Railway project"
+        exit 1
+    else
+        echo "❌ Database connection failed despite DATABASE_URL being set"
+        exit 1
+    fi
+}
 
 # Run database migrations
 echo "🗄️  Running database migrations..."
@@ -49,7 +69,7 @@ else:
 echo "🚀 Starting Gunicorn server on port $PORT..."
 exec gunicorn auth_service.wsgi:application \
     --bind 0.0.0.0:$PORT \
-    --workers 2 \
+    --workers 1 \
     --timeout 120 \
     --access-logfile - \
     --error-logfile - \

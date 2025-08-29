@@ -8,6 +8,7 @@ from django.conf import settings
 import redis
 import secrets
 import json
+import os
 
 from .serializers import (
     UserRegistrationSerializer,
@@ -20,13 +21,17 @@ from .serializers import (
 User = get_user_model()
 
 # Initialize Redis connection for password reset tokens
+redis_client = None
 try:
-    redis_client = redis.from_url(settings.REDIS_URL)
-    print("✅ Redis client initialized successfully")
+    redis_url = os.environ.get('REDIS_URL')
+    if redis_url:
+        redis_client = redis.from_url(redis_url)
+        print("✅ Redis client initialized successfully")
+    else:
+        print("⚠️  No REDIS_URL found, using Django cache fallback")
 except Exception as e:
     print(f"⚠️  Redis connection failed: {e}")
     print("🔄 Using Django cache fallback for password reset tokens")
-    redis_client = None
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -83,7 +88,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
                 # Generate reset token
                 reset_token = secrets.token_urlsafe(32)
                 
-                # Store token in Redis with 10 minutes expiry
+                # Store token in Redis/cache with 10 minutes expiry
                 cache_key = f"password_reset_{reset_token}"
                 cache_data = {
                     'user_id': user.id,

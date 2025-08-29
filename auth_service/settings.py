@@ -90,22 +90,41 @@ TEMPLATES = [
 WSGI_APPLICATION = 'auth_service.wsgi.application'
 
 # Database Configuration
-# Use PostgreSQL in production, SQLite for local development if PostgreSQL not available
-DATABASES = {
-    'default': env.db('DATABASE_URL', default='postgresql://postgres:password@localhost:5432/auth_service_db')
-}
+# Handle Railway's DATABASE_URL properly
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    # Railway provides DATABASE_URL
+    DATABASES = {
+        'default': env.db('DATABASE_URL')
+    }
+else:
+    # Fallback for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Cache Configuration (Redis)
-# Use Redis in production, local memory cache for development if Redis not available
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': env('REDIS_URL', default='redis://localhost:6379/0'),
+# Handle Railway's REDIS_URL properly
+REDIS_URL = os.environ.get('REDIS_URL')
+if REDIS_URL:
+    # Railway provides REDIS_URL
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        }
     }
-}
-
-# Redis URL for password reset tokens
-REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
+else:
+    # Fallback for local development
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
