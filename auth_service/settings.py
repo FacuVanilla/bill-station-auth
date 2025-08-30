@@ -35,7 +35,11 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 # Add Railway domain to allowed hosts if PORT is set
 if os.environ.get('PORT'):
-    ALLOWED_HOSTS.append('*')
+    ALLOWED_HOSTS.extend([
+        '*',  # Allow all hosts in production
+        'web-production-c1b1.up.railway.app',  # Your specific Railway domain
+        '*.railway.app',  # All Railway domains
+    ])
 
 # Application definition
 
@@ -50,6 +54,7 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # Add this for proper token blacklisting
     'corsheaders',
     'drf_yasg',
     
@@ -58,9 +63,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Move CORS to the top
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -157,32 +162,83 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '5/minute',
-        'user': '10/minute'
-    }
+        'anon': '100/hour',  # Increased for testing
+        'user': '1000/hour'   # Increased for testing
+    },
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
 }
 
 # JWT settings
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=env.int('JWT_ACCESS_TOKEN_LIFETIME', default=5)),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=env.int('JWT_REFRESH_TOKEN_LIFETIME', default=1)),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=env.int('JWT_ACCESS_TOKEN_LIFETIME', default=15)),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=env.int('JWT_REFRESH_TOKEN_LIFETIME', default=7)),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
 }
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
-# Allow all origins in production for Railway
-if not DEBUG:
+# CORS settings - More permissive for testing
+if DEBUG:
+    # Development settings
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+else:
+    # Production settings - allow all origins for Railway
     CORS_ALLOW_ALL_ORIGINS = True
 
+# Additional CORS settings
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# CSRF settings for API
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-c1b1.up.railway.app',
+    'https://*.railway.app',
+]
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = False  # Railway handles SSL termination
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_TZ = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -209,3 +265,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
 AUTH_USER_MODEL = 'users.User'
+
+# Logging configuration for debugging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

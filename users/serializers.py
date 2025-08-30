@@ -59,6 +59,20 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return attrs
 
 
+class TokenRefreshSerializer(serializers.Serializer):
+    refresh = serializers.CharField(help_text="Refresh token")
+
+    class Meta:
+        fields = ('refresh',)
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(required=False, help_text="Refresh token to blacklist")
+    
+    class Meta:
+        fields = ('refresh',)
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

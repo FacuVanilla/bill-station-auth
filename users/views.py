@@ -5,6 +5,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 import redis
 import secrets
 import json
@@ -15,7 +19,9 @@ from .serializers import (
     UserLoginSerializer,
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
-    UserProfileSerializer
+    UserProfileSerializer,
+    TokenRefreshSerializer,
+    LogoutSerializer
 )
 
 User = get_user_model()
@@ -34,11 +40,40 @@ except Exception as e:
     print("🔄 Using Django cache fallback for password reset tokens")
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserRegistrationView(generics.CreateAPIView):
+    """
+    Register a new user account
+    """
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Register a new user account",
+        responses={
+            201: openapi.Response(
+                description="User registered successfully",
+                examples={
+                    "application/json": {
+                        "message": "User registered successfully",
+                        "user": {
+                            "id": 1,
+                            "email": "user@example.com",
+                            "full_name": "John Doe",
+                            "date_joined": "2025-01-01T00:00:00Z",
+                            "last_login": None
+                        },
+                        "tokens": {
+                            "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                            "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                        }
+                    }
+                }
+            ),
+            400: "Bad request - validation errors"
+        }
+    )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -55,10 +90,39 @@ class UserRegistrationView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserLoginView(generics.GenericAPIView):
+    """
+    Authenticate and login a user
+    """
     serializer_class = UserLoginSerializer
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Authenticate and login a user",
+        responses={
+            200: openapi.Response(
+                description="Login successful",
+                examples={
+                    "application/json": {
+                        "message": "Login successful",
+                        "user": {
+                            "id": 1,
+                            "email": "user@example.com",
+                            "full_name": "John Doe",
+                            "date_joined": "2025-01-01T00:00:00Z",
+                            "last_login": "2025-01-01T12:00:00Z"
+                        },
+                        "tokens": {
+                            "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                            "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                        }
+                    }
+                }
+            ),
+            400: "Bad request - invalid credentials"
+        }
+    )
     def post(self, request):
         serializer = self.get_serializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -75,10 +139,30 @@ class UserLoginView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetRequestView(generics.GenericAPIView):
+    """
+    Request a password reset token
+    """
     serializer_class = PasswordResetRequestSerializer
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Request a password reset token",
+        responses={
+            200: openapi.Response(
+                description="Password reset token generated",
+                examples={
+                    "application/json": {
+                        "message": "Password reset token generated successfully",
+                        "reset_token": "abc123def456...",
+                        "expires_in": "10 minutes",
+                        "note": "In production, this token would be sent via email"
+                    }
+                }
+            )
+        }
+    )
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -119,10 +203,28 @@ class PasswordResetRequestView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetConfirmView(generics.GenericAPIView):
+    """
+    Confirm password reset with token
+    """
     serializer_class = PasswordResetConfirmSerializer
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Confirm password reset with token",
+        responses={
+            200: openapi.Response(
+                description="Password reset successful",
+                examples={
+                    "application/json": {
+                        "message": "Password reset successful"
+                    }
+                }
+            ),
+            400: "Bad request - invalid or expired token"
+        }
+    )
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -172,70 +274,128 @@ class PasswordResetConfirmView(generics.GenericAPIView):
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
+    """
+    Retrieve and update user profile
+    """
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return self.request.user
 
+    @swagger_auto_schema(
+        operation_description="Get user profile",
+        responses={
+            200: UserProfileSerializer,
+            401: "Unauthorized"
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_description="Update user profile",
+        responses={
+            200: UserProfileSerializer,
+            400: "Bad request",
+            401: "Unauthorized"
+        }
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class TokenRefreshView(generics.GenericAPIView):
+    """
+    Refresh JWT access token
+    """
+    serializer_class = TokenRefreshSerializer
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Refresh JWT access token",
+        responses={
+            200: openapi.Response(
+                description="Token refreshed successfully",
+                examples={
+                    "application/json": {
+                        "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                        "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                    }
+                }
+            ),
+            400: "Bad request - invalid refresh token"
+        }
+    )
     def post(self, request):
-        try:
-            refresh_token = request.data.get('refresh')
-            if not refresh_token:
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                refresh_token = serializer.validated_data['refresh']
+                refresh = RefreshToken(refresh_token)
                 return Response({
-                    'error': 'Refresh token is required'
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh)
+                }, status=status.HTTP_200_OK)
+                
+            except Exception as e:
+                return Response({
+                    'error': 'Invalid refresh token'
                 }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Logout user and blacklist refresh token",
+    request_body=LogoutSerializer,
+    responses={
+        200: openapi.Response(
+            description="Logout successful",
+            examples={
+                "application/json": {
+                    "message": "Logout successful",
+                    "note": "Tokens have been invalidated"
+                }
+            }
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+@csrf_exempt
+def logout_view(request):
+    """
+    Logout endpoint that blacklists refresh tokens
+    """
+    serializer = LogoutSerializer(data=request.data)
+    if serializer.is_valid():
+        try:
+            refresh_token = serializer.validated_data.get('refresh')
             
-            refresh = RefreshToken(refresh_token)
+            # Blacklist the refresh token if provided
+            if refresh_token:
+                try:
+                    token = RefreshToken(refresh_token)
+                    token.blacklist()
+                except Exception as e:
+                    # If refresh token is invalid, that's okay for logout
+                    pass
+            
             return Response({
-                'access': str(refresh.access_token),
-                'refresh': str(refresh)
+                'message': 'Logout successful',
+                'note': 'Tokens have been invalidated'
             }, status=status.HTTP_200_OK)
             
         except Exception as e:
             return Response({
-                'error': 'Invalid refresh token'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def logout_view(request):
-    try:
-        refresh_token = request.data.get('refresh')
-        access_token = request.data.get('access')
-        
-        # Blacklist the refresh token if provided
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-            except Exception as e:
-                # If refresh token is invalid, that's okay for logout
-                pass
-        
-        # Handle the access token if provided
-        if access_token:
-            try:
-                from rest_framework_simplejwt.tokens import AccessToken
-                token = AccessToken(access_token)
-                # Note: Access tokens can't be blacklisted by default, but we can track them
-                # For now, we'll just acknowledge the logout request
-            except Exception as e:
-                # If access token is invalid, that's okay for logout
-                pass
-        
+                'message': 'Logout successful',
+                'note': 'Some tokens may have been invalid already'
+            }, status=status.HTTP_200_OK)
+    else:
+        # Even if serializer is invalid, we can still logout
         return Response({
             'message': 'Logout successful',
-            'note': 'Tokens have been invalidated'
-        }, status=status.HTTP_200_OK)
-        
-    except Exception as e:
-        return Response({
-            'message': 'Logout successful',
-            'note': 'Some tokens may have been invalid already'
+            'note': 'Logout completed despite invalid data'
         }, status=status.HTTP_200_OK)
