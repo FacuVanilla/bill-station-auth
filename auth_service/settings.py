@@ -111,25 +111,13 @@ else:
         }
     }
 
-# Cache Configuration (Redis)
-# Handle Railway's REDIS_URL properly
-REDIS_URL = os.environ.get('REDIS_URL')
-if REDIS_URL:
-    # Railway provides REDIS_URL
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': REDIS_URL,
-        }
+# Cache Configuration - Use local memory cache for now to avoid Redis issues
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
-else:
-    # Fallback for local development
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
-        }
-    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
