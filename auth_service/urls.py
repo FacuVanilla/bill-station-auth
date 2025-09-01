@@ -36,6 +36,17 @@ def health_check(request):
 def ping(request):
     return JsonResponse({'pong': True}, status=200)
 
+# Debug endpoint to test basic functionality
+@csrf_exempt
+def debug(request):
+    return JsonResponse({
+        'status': 'ok',
+        'message': 'Django is working',
+        'timestamp': '2025-01-29T00:00:00Z',
+        'debug': DEBUG,
+        'allowed_hosts': ALLOWED_HOSTS
+    }, status=200)
+
 # Swagger schema view
 schema_view = get_schema_view(
     openapi.Info(
@@ -55,6 +66,7 @@ urlpatterns = [
     path('api/v1/users/', include('users.urls')),
     path('health/', health_check, name='health_check'),
     path('ping/', ping, name='ping'),
+    path('debug/', debug, name='debug'),
     path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

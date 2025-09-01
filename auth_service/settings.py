@@ -35,11 +35,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 # Add Railway domain to allowed hosts if PORT is set
 if os.environ.get('PORT'):
-    ALLOWED_HOSTS.extend([
-        '*',  # Allow all hosts in production
-        'web-production-c1b1.up.railway.app',  # Your specific Railway domain
-        '*.railway.app',  # All Railway domains
-    ])
+    ALLOWED_HOSTS = ['*']  # Allow all hosts in production for Railway
 
 # Application definition
 
@@ -71,7 +67,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'auth_service.urls'
