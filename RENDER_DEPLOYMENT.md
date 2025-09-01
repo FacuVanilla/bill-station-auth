@@ -15,9 +15,9 @@
 
 **Environment:** `Python 3`
 
-**Build Command:** `pip install -r requirements.txt`
+**Build Command:** `pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput`
 
-**Start Command:** `python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn auth_service.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120`
+**Start Command:** Leave blank (uses Procfile)
 
 ### 3. Environment Variables
 
