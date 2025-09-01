@@ -21,7 +21,9 @@ from django.views.decorators.csrf import csrf_exempt
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
-
+from django.conf import settings
+DEBUG = settings.DEBUG
+ALLOWED_HOSTS = settings.ALLOWED_HOSTS
 # Health check view for Railway
 @csrf_exempt
 def health_check(request):
