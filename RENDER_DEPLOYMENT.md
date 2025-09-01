@@ -15,7 +15,7 @@
 
 **Environment:** `Python 3`
 
-**Build Command:** `pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput`
+**Build Command:** `pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear`
 
 **Start Command:** Leave blank (uses Procfile)
 
