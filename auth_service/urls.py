@@ -29,7 +29,12 @@ def health_check(request):
         'status': 'healthy',
         'message': 'Django Auth Service is running',
         'timestamp': '2025-01-29T00:00:00Z'
-    })
+    }, status=200)
+
+# Simple ping endpoint for healthchecks
+@csrf_exempt
+def ping(request):
+    return JsonResponse({'pong': True}, status=200)
 
 # Swagger schema view
 schema_view = get_schema_view(
@@ -49,6 +54,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/users/', include('users.urls')),
     path('health/', health_check, name='health_check'),
+    path('ping/', ping, name='ping'),
     path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
