@@ -27,4 +27,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:$PORT"]
+CMD ["gunicorn", "auth_service.wsgi:application"]
