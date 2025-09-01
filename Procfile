@@ -1,1 +1,1 @@
-web: gunicorn auth_service.wsgi:application
+web: python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn auth_service.wsgi:application
