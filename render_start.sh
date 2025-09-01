@@ -11,7 +11,7 @@ python manage.py migrate --noinput
 
 # Collect static files
 echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear
 
 # Start Gunicorn
 echo "🚀 Starting Gunicorn server..."
