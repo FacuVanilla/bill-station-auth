@@ -1,18 +1,5 @@
 """
 URL configuration for auth_service project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -22,8 +9,10 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from django.conf import settings
+
 DEBUG = settings.DEBUG
 ALLOWED_HOSTS = settings.ALLOWED_HOSTS
+
 # Health check view for Railway
 @csrf_exempt
 def health_check(request):
@@ -49,7 +38,7 @@ def debug(request):
         'allowed_hosts': ALLOWED_HOSTS
     }, status=200)
 
-# Swagger schema view
+# Swagger schema view - FIXED: Remove patterns parameter to let it auto-discover
 schema_view = get_schema_view(
     openapi.Info(
         title="Django Auth Service API",
@@ -61,7 +50,7 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
-    patterns=[path('api/v1/', include('users.urls'))],
+    # REMOVED: patterns=[path('api/v1/', include('users.urls'))],
 )
 
 urlpatterns = [
@@ -70,7 +59,10 @@ urlpatterns = [
     path('health/', health_check, name='health_check'),
     path('ping/', ping, name='ping'),
     path('debug/', debug, name='debug'),
-    path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    
+    # API Documentation endpoints
+    path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
