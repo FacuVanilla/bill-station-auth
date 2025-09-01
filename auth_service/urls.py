@@ -59,6 +59,7 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
+    patterns=[path('api/v1/', include('users.urls'))],
 )
 
 urlpatterns = [
