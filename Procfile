@@ -1,1 +1,1 @@
-web: python manage.py collectstatic --noinput && gunicorn auth_service.wsgi:application
+web: gunicorn auth_service.wsgi:application
