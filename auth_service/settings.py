@@ -204,14 +204,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# ✅ Custom static dir if you add project-level assets
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+STATICFILES_DIRS = []  # optional: add custom static dirs here
 
-# ✅ Use WhiteNoise with compression (safe for Render, no manifest crash)
-if not DEBUG:
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# ✅ Use WhiteNoise with compression + manifest (best for Render)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -244,4 +240,18 @@ LOGGING = {
             'propagate': False,
         },
     },
+}
+
+# ✅ Swagger / drf-yasg settings
+SWAGGER_SETTINGS = {
+    "USE_SESSION_AUTH": False,
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+        }
+    },
+    # ✅ force CDN instead of local static files
+    "USE_STATIC_URL": False,
 }
