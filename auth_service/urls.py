@@ -38,7 +38,7 @@ def debug(request):
         'allowed_hosts': ALLOWED_HOSTS
     }, status=200)
 
-# Swagger / ReDoc schema view
+# Swagger schema view
 schema_view = get_schema_view(
     openapi.Info(
         title="Django Auth Service API",
@@ -54,8 +54,8 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    # ✅ Root → redirect to ReDoc
-    path('', lambda request: redirect('schema-redoc')),
+    # ✅ Root → redirect to Swagger UI
+    path('', lambda request: redirect('schema-swagger-ui')),
 
     # Admin + API
     path('admin/', admin.site.urls),
@@ -66,9 +66,8 @@ urlpatterns = [
     path('ping/', ping, name='ping'),
     path('debug/', debug, name='debug'),
 
-    # API docs
+    # Swagger docs
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',
             schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
