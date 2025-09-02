@@ -184,6 +184,7 @@ CORS_ALLOW_METHODS = [
 
 # CSRF
 CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
     'https://web-production-c1b1.up.railway.app',
     'https://*.railway.app',
 ]
@@ -243,6 +244,7 @@ LOGGING = {
 }
 
 # ✅ Swagger / drf-yasg settings
+
 SWAGGER_SETTINGS = {
     "USE_SESSION_AUTH": False,
     "SECURITY_DEFINITIONS": {
@@ -252,6 +254,7 @@ SWAGGER_SETTINGS = {
             "in": "header",
         }
     },
-    # ✅ force CDN instead of local static files
     "USE_STATIC_URL": False,
+    "DEFAULT_MODEL_RENDERING": "example",
+    "DOC_EXPANSION": "none",
 }

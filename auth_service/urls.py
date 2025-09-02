@@ -59,7 +59,7 @@ urlpatterns = [
 
     # Admin + API
     path('admin/', admin.site.urls),
-    path('api/v1/users/', include('users.urls')),
+    path('api/v1/', include('users.urls')),
 
     # Health/debug endpoints
     path('health/', health_check, name='health_check'),

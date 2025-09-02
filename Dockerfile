@@ -26,5 +26,5 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["gunicorn", "auth_service.wsgi:application"]
+# Entrypoint script
+CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn auth_service.wsgi:application --bind 0.0.0.0:$PORT"]
